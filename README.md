@@ -1,1 +1,1 @@
-# S-P-500-Predictor-
+# SP500_Predictor
