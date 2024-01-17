@@ -26,11 +26,10 @@ train = sp500.iloc[:-100]
 test = sp500.iloc[-100:]
 
 predictors = ["Close", "Volume", "Open", "High", "Low"]
-print(model.fit(train[predictors], train["Target"]))
+model.fit(train[predictors], train["Target"])
 
 preds = model.predict(test[predictors])
 preds = pd.Series(preds, index = test.index)
-print(preds)
 
 combined = pd.concat([test["Target"], preds], axis = 1)
 combined.plot()
@@ -53,11 +52,11 @@ def backtest(data, model, predictors, start = 2500, step = 250):
     return pd.concat(all_predictions)
 
 predictions = backtest(sp500, model, predictors)
-print(predictions["Predictions"].value_counts())
+predictions["Predictions"].value_counts()
 
-print(precision_score(predictions["Target"], predictions["Predictions"]))
+precision_score(predictions["Target"], predictions["Predictions"])
 
-print(predictions["Target"].value_counts() / predictions.shape[0])
+predictions["Target"].value_counts() / predictions.shape[0]
 
 horizons = [2, 5, 60, 250, 1000]
 new_predictors = []
@@ -77,5 +76,17 @@ sp500 = sp500.dropna()
 
 model = RandomForestClassifier(n_estimators = 200, min_samples_split = 50, random_state = 1)
 
+def predict(train, test, predictors, model):
+    model.fit(train[predictors], train["Target"])
+    preds = model.predict_proba(test[predictors])[:,1]
+    preds[preds >= .6] = 1
+    preds[preds < .6] = 0
+    preds = pd.Series(preds, index = test.index, name = "Predictions")
+    combined = pd.concat([test["Target"], preds], axis = 1)
+    return combined
 
+predictions = backtest(sp500, model, new_predictors)
 
+predictions["Predictions"].value_counts()
+
+precision_score(predictions["Target"], predictions["Predictions"])
